@@ -1,19 +1,19 @@
 package io.github.minkik715.mkchatting.server;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
-public class DiscardServer {
+import java.util.concurrent.ConcurrentHashMap;
+
+public class ChatServer {
 
     private int port;
 
-    public DiscardServer(int port) {
+    public ChatServer(int port) {
         this.port = port;
     }
 
@@ -23,14 +23,16 @@ public class DiscardServer {
         System.out.println("starting server...");
         try {
             ServerBootstrap b = new ServerBootstrap();
+            ObjectMapper objectMapper = new ObjectMapper();
+            ConcurrentHashMap<String, ConcurrentHashMap<String, Channel>> roomUserChannels = new ConcurrentHashMap<>();
             b.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class)
                     .childHandler(new ChannelInitializer<SocketChannel>(){
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
                             ch.pipeline()
-                                    .addLast(new TimeServerHandler());
-                                    //.addLast(new DiscardServerHandler());
+                                    .addLast(new ChatMessageDecoder(objectMapper))
+                                    .addLast(new ChatServerHandler(roomUserChannels,  objectMapper));
                         }
                     })
                     .option(ChannelOption.SO_BACKLOG, 128)
@@ -48,6 +50,6 @@ public class DiscardServer {
     public static void main(String[] args) throws Exception {
         int port = 8080;
 
-        new DiscardServer(port).run();
+        new ChatServer(port).run();
     }
 }
