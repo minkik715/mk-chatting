@@ -36,8 +36,8 @@ public class ChatServerHandler extends SimpleChannelInboundHandler<ChatMessageBa
         ChatCommandDTO message = (ChatCommandDTO) msg;
         if (message.command() == ChatCommandDTO.ChatCommandType.ENTER) {
             roomUserChannels.computeIfAbsent(message.room(), k -> new ConcurrentHashMap<>())
-                    .put(message.user(), ctx.channel());
-            userId = message.user();
+                    .put(message.userId(), ctx.channel());
+            userId = message.userId();
             roomId = message.room();
         } else if (message.command() == ChatCommandDTO.ChatCommandType.EXIT) {
             removeUser(ctx);

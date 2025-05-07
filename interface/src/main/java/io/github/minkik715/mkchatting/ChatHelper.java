@@ -42,5 +42,11 @@ public class ChatHelper {
             throw new RuntimeException("Failed to serialize message", e);
         }
     }
+
+    private static void printChatMessage(ChatCommandDTO chatCommandDTO) {
+        System.out.println(
+                chatCommandDTO
+        );
+    }
 }
 
