@@ -2,38 +2,52 @@ package io.github.minkik715.mkchatting.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.minkik715.mkchatting.ChatCommandDTO;
-import io.netty.buffer.ByteBuf;
+import io.github.minkik715.mkchatting.ChatHelper;
+import io.github.minkik715.mkchatting.ChatMessageBaseDTO;
+import io.github.minkik715.mkchatting.RoomsDTO;
 import io.netty.channel.*;
 
-public class ChatClientHandler extends SimpleChannelInboundHandler<ChatCommandDTO> {
+import java.io.BufferedReader;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicReference;
+
+public class ChatClientHandler extends SimpleChannelInboundHandler<ChatMessageBaseDTO> {
 
     private ObjectMapper objectMapper;
     private String userId;
+    private BufferedReader reader;
+    private CompletableFuture<String> roomId;
 
-    ChatClientHandler(String userId, ObjectMapper objectMapper) {
+    ChatClientHandler(String userId, ObjectMapper objectMapper,CompletableFuture<String> roomId, BufferedReader reader) {
         this.objectMapper = objectMapper;
         this.userId = userId;
+        this.roomId = roomId;
+        this.reader = reader;
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        byte[] msg = objectMapper.writeValueAsBytes(new ChatCommandDTO(userId, "1", ChatCommandDTO.ChatCommandType.ENTER, userId + "님이 입장하셨습니다."));
-        ByteBuf buf = ctx.alloc().buffer(msg.length);
-        buf.writeBytes(msg);
-        ChannelFuture f = ctx.writeAndFlush(buf);
-        f.addListener(new ChannelFutureListener() {
-
-            @Override
-            public void operationComplete(ChannelFuture channelFuture) throws Exception {
-                System.out.println(channelFuture.isSuccess() + " " + channelFuture.channel().remoteAddress() + "channel Active");
-            }
-        });
-        super.channelActive(ctx);
+        System.out.println(ctx.channel().remoteAddress() + "channel Active");
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, ChatCommandDTO msg) throws Exception {
-        System.out.println(msg);
+    protected void channelRead0(ChannelHandlerContext ctx,  ChatMessageBaseDTO msg) throws Exception {
+        if(msg instanceof ChatCommandDTO message){
+            System.out.println(message);
+        }else if(msg instanceof RoomsDTO rooms){
+            System.out.println("채팅방 목록:");
+            for (int i = 0; i < rooms.rooms().size(); i++) {
+                System.out.printf("[%d] %s%n", i, rooms.rooms().get(i));
+            }
+
+            System.out.print("입장할 방 번호를 입력하세요: ");
+            int choice = Integer.parseInt(reader.readLine());
+            String room = rooms.rooms().get(choice);
+            ChatCommandDTO enter = new ChatCommandDTO(userId, room, ChatCommandDTO.ChatCommandType.ENTER, userId + "님이 입장하셨습니다.");
+            ChatHelper.sendMessage(ctx.channel(), enter);
+            this.roomId.complete(room);
+        }
     }
 
     @Override

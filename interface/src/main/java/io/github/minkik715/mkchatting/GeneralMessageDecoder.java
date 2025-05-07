@@ -1,19 +1,20 @@
-package io.github.minkik715.mkchatting.server;
+package io.github.minkik715.mkchatting;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.minkik715.mkchatting.ChatCommandDTO;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
 
 import java.util.List;
 
-public class ChatMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
+public class GeneralMessageDecoder<T> extends MessageToMessageDecoder<ByteBuf> {
 
     ObjectMapper objectMapper;
+    private Class<T> clazz;
 
-    ChatMessageDecoder(ObjectMapper objectMapper) {
+    public GeneralMessageDecoder(ObjectMapper objectMapper, Class<T> clazz) {
         this.objectMapper = objectMapper;
+        this.clazz = clazz;
     }
 
     @Override
@@ -21,7 +22,7 @@ public class ChatMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
         byte[] bytes = new byte[byteBuf.readableBytes()];
         byteBuf.readBytes(bytes);
 
-        ChatCommandDTO dto = objectMapper.readValue(bytes, ChatCommandDTO.class);
+        T dto = objectMapper.readValue(bytes, clazz);
         list.add(dto);
     }
 }
