@@ -19,6 +19,14 @@ import java.util.concurrent.CompletableFuture;
 public class ChatClient {
 
     public static void main(String[] args) {
+        String serverIp = "127.0.0.1";
+        int tcpPort = 12000;
+        int udpPort = 12000;
+
+        // 명령행 인자로부터 IP 및 포트 설정
+        if (args.length >= 1) serverIp = args[0];
+        if (args.length >= 2) tcpPort = Integer.parseInt(args[1]);
+        if (args.length >= 3) udpPort = Integer.parseInt(args[2]);
 
         EventLoopGroup worker = new NioEventLoopGroup();
         CompletableFuture<String> roomId = new CompletableFuture<>();
@@ -28,6 +36,7 @@ public class ChatClient {
             String userId = UUID.randomUUID().toString();
             String nickname = reader.readLine();
             Bootstrap b = new Bootstrap();
+
             ObjectMapper objectMapper = new ObjectMapper();
             b.group(worker)
                     .channel(NioSocketChannel.class)
@@ -42,9 +51,10 @@ public class ChatClient {
                     });
 
 
-            ChannelFuture localhost = b.connect("192.168.219.102", 8080).sync();
+            ChannelFuture localhost = b.connect(serverIp, tcpPort).sync();
             Channel channel = localhost.channel();
-
+            UdpHeartbeatClient heartbeatClient = new UdpHeartbeatClient(serverIp, udpPort, userId);
+            heartbeatClient.start();
             String selectedRoomId = roomId.get();
             System.out.println("채팅을 입력하세요 >");
             String line;

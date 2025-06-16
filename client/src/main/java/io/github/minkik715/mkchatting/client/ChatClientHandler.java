@@ -44,7 +44,7 @@ public class ChatClientHandler extends SimpleChannelInboundHandler<ChatMessageBa
             System.out.print("입장할 방 번호를 입력하세요: ");
             int choice = Integer.parseInt(reader.readLine());
             String room = rooms.rooms().get(choice);
-            ChatCommandDTO enter = new ChatCommandDTO(userId, nickname, room, ChatCommandDTO.ChatCommandType.ENTER, userId + "님이 입장하셨습니다.");
+            ChatCommandDTO enter = new ChatCommandDTO(userId, nickname, room, ChatCommandDTO.ChatCommandType.ENTER, nickname + "님이 입장하셨습니다.");
             ChatHelper.sendMessage(ctx.channel(), enter);
             this.roomId.complete(room);
         }

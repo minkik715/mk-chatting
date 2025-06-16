@@ -11,6 +11,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ChatServer {
@@ -57,8 +58,44 @@ public class ChatServer {
     }
 
     public static void main(String[] args) throws Exception {
-        int port = 8080;
+        int port = 12000;
+        int udpPort = 12000;
+        ConcurrentHashMap<String, Long> lastSeenMap = new ConcurrentHashMap<>();
+
+        // UDP 서버 스레드 시작
+        Thread udpServerThread = new Thread(() -> {
+            try {
+                new UdpHeartbeatServer(udpPort, lastSeenMap).run();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+        udpServerThread.setDaemon(true);
+        udpServerThread.start();
 
         new ChatServer(port).run();
+        startHeartbeatMonitor(lastSeenMap);
+    }
+
+
+    public static void startHeartbeatMonitor(Map<String, Long> lastSeenMap) {
+        Thread t = new Thread(() -> {
+            while (true) {
+                System.out.println("현재 접속중인 클라이언트:");
+                long now = System.currentTimeMillis();
+                for (Map.Entry<String, Long> entry : lastSeenMap.entrySet()) {
+                    if (now - entry.getValue() < 10000) { // 최근 10초 이내
+                        System.out.println(" - " + entry.getKey());
+                    }
+                }
+                try {
+                    Thread.sleep(10000);
+                } catch (InterruptedException e) {
+                    break;
+                }
+            }
+        });
+        t.setDaemon(true);
+        t.start();
     }
 }

@@ -30,7 +30,7 @@ java -cp build/libs/[생성된 JAR 파일 이름].jar io.github.minkik715.mkchat
 ChatClient.java에서 서버 IP 수정
 
 
-b.connect("192.168.219.102", 8080).sync(); // ← 서버 IP로 수정
+b.connect("192.168.219.102", 12000).sync(); // ← 서버 IP로 수정
 클라이언트 실행
 
 
