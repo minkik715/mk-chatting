@@ -12,7 +12,7 @@ import java.util.Collection;
 
 public class ChatHelper {
     static ObjectMapper objectMapper = new ObjectMapper();
-    static final boolean encrypt = true;
+    public static boolean encrypt = true;
     private static final String ALGORITHM = "AES";
     private static final byte[] KEY = "1234567890123456".getBytes(); // 16바이트 키 예시 (128비트)
     private static final SecretKeySpec secretKey = new SecretKeySpec(KEY, ALGORITHM);

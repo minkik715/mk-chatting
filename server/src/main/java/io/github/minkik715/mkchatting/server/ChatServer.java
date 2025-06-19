@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static io.github.minkik715.mkchatting.ChatHelper.encrypt;
+
 public class ChatServer {
 
     private int port;
@@ -60,6 +62,10 @@ public class ChatServer {
     public static void main(String[] args) throws Exception {
         int port = 12000;
         int udpPort = 12000;
+        encrypt = true;
+        // 명령행 인자로부터 IP 및 포트 설정
+        if (args.length >= 1) encrypt = Boolean.valueOf(args[0]);
+
         ConcurrentHashMap<String, Long> lastSeenMap = new ConcurrentHashMap<>();
 
         // UDP 서버 스레드 시작
